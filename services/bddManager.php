@@ -40,9 +40,3 @@ class Database {
         return $db->lastInsertId();
     }
 }
-
-if (php_sapi_name() === 'cli') {
-    $db = Database::getInstance()->getPDO();
-    print_r(" Information liée à la connexion de la BDD : " . $db->getAttribute(PDO::ATTR_CONNECTION_STATUS) . "\n");
-    print_r(" Information sur le serveur de la BDD : " . $db->getAttribute(PDO::ATTR_SERVER_INFO) . "\n");
-}

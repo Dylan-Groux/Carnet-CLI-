@@ -12,7 +12,24 @@ while (true) {
     }
     if ($line === 'liste') {
         Commande::list();
-    } else {
-        ContactManager::afficherErreur("Commande invalide, veuillez entrer 'liste' ou 'exit'.");
+    } elseif ($line === 'detail') {
+        $id = readline("Entrez l'ID du contact : ");
+        if (is_numeric($id)) {
+            Commande::detail($id);
+        } else {
+            ContactManager::afficherErreur("L'ID doit être un nombre.");
+        }
+    } elseif ($line === 'create') {
+        Commande::create();
+    } elseif ($line === 'delete') {
+        Commande::delete();
+    } elseif ($line === 'help') {
+        echo "Liste des commandes disponibles :\n";
+        echo "- liste : Afficher la liste des contacts\n";
+        echo "- detail : Afficher les détails d'un contact\n";
+        echo "- create : Créer un nouveau contact\n";
+        echo "- delete : Supprimer un contact\n";
+        echo "- help : Afficher cette aide\n";
     }
+
 }
