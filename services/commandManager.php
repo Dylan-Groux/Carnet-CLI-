@@ -1,39 +1,58 @@
 <?php
 
+namespace Services;
+
 require_once 'services/contactManager.php';
 require_once 'services/ContactSorter.php';
 require_once 'repository/ContactRepository.php';
 
-class Commande {
-    public static function list() {
-        $contacts = ContactRepository::findAll();
-        ContactManager::afficherContacts($contacts);
-        // Appel de la demande du tri
-        $contacts = ContactSorter::interactiveSort($contacts);
+use Entity\Contact;
+use Repository\ContactRepository;
+use Services\ContactManager;
+use Services\ContactSorter;
+
+class CommandeManager
+{
+    private ContactRepository $contactRepository;
+    private ContactManager $contactManager;
+    private ContactSorter $contactSorter;
+
+    public function __construct() {
+        $this->contactRepository = new ContactRepository();
+        $this->contactManager = new ContactManager();
+        $this->contactSorter = new ContactSorter();
     }
 
-    public static function detail($id) {
-        $contacts = ContactRepository::getContactById($id);
+    public function list() {
+        $contacts = $this->contactRepository->findAll();
+        $this->contactManager->afficherContacts($contacts);
+        // Appel de la demande du tri
+        $contacts = $this->contactSorter->interactiveSort($contacts);
+    }
+
+    public function detail($id) {
+        $contacts = $this->contactRepository->getContactById($id);
         if (empty($contacts)) {
-            ContactManager::afficherErreur("Aucun contact trouvé avec l'ID $id.");
+            $this->contactManager->afficherErreur("Aucun contact trouvé avec l'ID $id.");
+            return null;
         } else {
-            ContactManager::afficherContacts($contacts);
+            $this->contactManager->afficherContacts($contacts);
         }
     }
 
-    public static function create() {
+    public function create() {
         $name = readline("Entrez le nom du contact : ");
         $email = readline("Entrez l'email du contact : ");
         $phone_number = readline("Entrez le numéro de téléphone du contact : ");
-        ContactRepository::createContact($name, $email, $phone_number);
+        $this->contactRepository->createContact($name, $email, $phone_number);
     }
 
-    public static function delete() {
+    public function delete() {
         $id = readline("Entrez l'ID du contact à supprimer : ");
         if (is_numeric($id)) {
-            ContactRepository::deleteContact($id);
+            $this->contactRepository->deleteContact($id);
         } else {
-            ContactManager::afficherErreur("L'ID doit être un nombre.");
+            $this->contactManager->afficherErreur("L'ID doit être un nombre.");
         }
     }
 
@@ -41,15 +60,15 @@ class Commande {
      * Modifie un contact existant
      * @return Contact|null Le contact modifié ou null en cas d'erreur
      */
-    public static function modify() : ?Contact {
+    public function modify() : ?Contact {
         $id = readline("Entrez l'ID du contact à modifier : ");
         if (!is_numeric($id)) {
-            ContactManager::afficherErreur("L'ID doit être un nombre.");
+            $this->contactManager->afficherErreur("L'ID doit être un nombre.");
             return null;
         }
-        $contacts = ContactRepository::getContactById($id);
+        $contacts = $this->contactRepository->getContactById($id);
         if (empty($contacts)) {
-            ContactManager::afficherErreur("Aucun contact trouvé avec l'ID $id.");
+            $this->contactManager->afficherErreur("Aucun contact trouvé avec l'ID $id.");
             return null;
         }
         $contact = $contacts[0];
@@ -70,28 +89,30 @@ class Commande {
             $phone_number = $contact->getPhoneNumber();
         }
 
-        return ContactRepository::updateContact($id, $name, $email, $phone_number);
+        return $this->contactRepository->updateContact($id, $name, $email, $phone_number);
     }
 
     /**
-     * Recherche un contact par un champ spécifique
-     * @return Contact|null Le contact trouvé ou null s'il n'existe pas
+     * Recherche un ou des contacts par un champ spécifique
+     * @return Contact[]|null Les contacts trouvés ou null s'il n'existe pas
      */
-    public static function find() : ?Contact {
-        $contacts = ContactRepository::findAll();
+    public function find() : array {
+        $contacts = $this->contactRepository->findAll();
         $field = readline("Par quel champ voulez-vous rechercher ? (name, email, phone_number) : ");
         if (!in_array($field, ['name', 'email', 'phone_number'])) {
-            ContactManager::afficherErreur("Champ de recherche invalide. Choisissez 'name', 'email' ou 'phone_number'.");
-            return null;
+            $this->contactManager->afficherErreur("Champ de recherche invalide. Choisissez 'name', 'email' ou 'phone_number'.");
+            return [];
         }
         $search = readline("Entrez la valeur à rechercher : ");
         foreach ($contacts as $contact) {
             if ($contact->$field === $search) {
                 echo $contact . "\n"; // Utilise __toString()
-                return $contact;
+                $found[] = $contact;
             }
         }
-        ContactManager::afficherErreur("Aucun contact trouvé avec le $field $search.");
-        return null;
+        if (empty($found)) {
+            $this->contactManager->afficherErreur("Aucun contact trouvé avec le $field $search.");
+        }
+        return $found;
     }
 }

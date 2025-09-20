@@ -1,16 +1,22 @@
 <?php
 
+namespace Repository;
+
 require_once 'services/bddManager.php';
 require_once 'entity/Contact.php';
 require_once 'services/contactManager.php';
 
-class ContactRepository {
-        private Contact $contact;
-        private Database $database;
-        private ContactManager $contactManager;
+use Entity\Contact;
+use Services\Database;
+use Services\ContactManager;
+use \PDO;
 
-    public function __construct(Contact $contact) {
-        $this->contact = $contact;
+class ContactRepository
+{
+    private Database $database;
+    private ContactManager $contactManager;
+
+    public function __construct() {
         $this->database = Database::getInstance();
         $this->contactManager = new ContactManager();
     }
@@ -19,8 +25,8 @@ class ContactRepository {
      * Récupère tous les contacts depuis la base de données
      * @return array Un tableau d'objets Contact
      */
-    public static function findAll(): array {
-        $db = Database::getInstance()->getPDO();
+    public function findAll(): array {
+        $db = $this->database->getPDO();
         $stmt = $db->query(("SELECT * FROM contact"));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -35,8 +41,8 @@ class ContactRepository {
      * @param int $id L'ID du contact à récupérer
      * @return array Un tableau contenant l'objet Contact correspondant, ou vide si non trouvé
      */
-    public static function getContactById($id): array {
-        $db = Database::getInstance()->getPDO();
+    public function getContactById(int $id): array {
+        $db = $this->database->getPDO();
         $stmt = $db->prepare("SELECT * FROM contact WHERE id = :id");
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -53,19 +59,19 @@ class ContactRepository {
      * @param string $name Le nom du contact
      * @param string $email L'email du contact
      * @param string $phone_number Le numéro de téléphone du contact
-     * @return Contact L'objet Contact créé
+     * @return Contact|null L'objet Contact créé
      */
-    public static function createContact($name, $email, $phone_number): ?Contact {
-        $db = Database::getInstance()->getPDO();
+    public function createContact(string $name, string $email, string $phone_number): ?Contact {
+        $db = $this->database->getPDO();
 
         // Nettoyage et validation des entrées
-        $sanitized = ContactManager::sanitizeInput($email, $phone_number);
+        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number);
         if (!$sanitized['isEmailValid']) {
-            ContactManager::afficherErreur("L'email fourni n'est pas valide.");
+            $this->contactManager->afficherErreur("L'email fourni n'est pas valide.");
             return null;
         }
         if (!$sanitized['isPhoneValid']) {
-            ContactManager::afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
+            $this->contactManager->afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
             return null;
         }
 
@@ -76,8 +82,7 @@ class ContactRepository {
             'phone_number' => $sanitized['phone_number']
         ]);
 
-        echo "Contact créé avec l'ID : " . Database::getLastInsertId() . "\n";
-        ContactManager::afficherContacts(self::getContactById(Database::getLastInsertId()));
+        $this->contactManager->afficherContacts($this->getContactById(Database::getLastInsertId()));
 
         return new Contact((int)Database::getLastInsertId(), $name, $sanitized['email'], $sanitized['phone_number']);
     }
@@ -87,17 +92,17 @@ class ContactRepository {
      * @param int $id L'ID du contact à supprimer
      * @return void
      */
-    public static function deleteContact($id)  {
-        $contact = self::getContactById($id);
+    public function deleteContact(int $id)  {
+        $contact = $this->getContactById($id);
         if (empty($contact)) {
-            ContactManager::afficherErreur("Aucun contact trouvé avec l'ID $id.");
+            $this->contactManager->afficherErreur("Aucun contact trouvé avec l'ID $id.");
             return;
         }
-        $db = Database::getInstance()->getPDO();
+        $db = $this->database->getPDO();
         $stmt = $db->prepare("DELETE FROM contact WHERE id = :id");
         $stmt->execute(['id' => $id]);
-        echo "Contact avec l'ID $id supprimé.\n";
-        ContactManager::afficherContacts($contact);
+
+        $this->contactManager->afficherContacts($contact);
     }
 
     /**
@@ -108,17 +113,17 @@ class ContactRepository {
      * @param string $phone_number Le nouveau numéro de téléphone du contact
      * @return void
      */
-    public static function updateContact($id, $name, $email, $phone_number) : ?Contact {
-        $db = Database::getInstance()->getPDO();
+    public function updateContact(int $id, string $name, string $email, string $phone_number) : ?Contact {
+        $db = $this->database->getPDO();
 
         // Nettoyage et validation des entrées
-        $sanitized = ContactManager::sanitizeInput($email, $phone_number);
+        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number);
         if (!$sanitized['isEmailValid']) {
-            ContactManager::afficherErreur("L'email fourni n'est pas valide.");
+            $this->contactManager->afficherErreur("L'email fourni n'est pas valide.");
             return null;
         }
         if (!$sanitized['isPhoneValid']) {
-            ContactManager::afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
+            $this->contactManager->afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
             return null;
         }
 
@@ -130,8 +135,7 @@ class ContactRepository {
             'phone_number' => $sanitized['phone_number']
         ]);
 
-        echo "Contact avec l'ID $id mis à jour.\n";
-        ContactManager::afficherContacts(self::getContactById($id));
+        $this->contactManager->afficherContacts($this->getContactById($id));
         return new Contact($id, $name, $sanitized['email'], $sanitized['phone_number']);
     }
 }

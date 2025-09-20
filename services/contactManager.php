@@ -1,5 +1,9 @@
 <?php
-class ContactManager {
+
+namespace Services;
+
+class ContactManager
+{
     public static function afficherErreur($message = "Erreur : veuillez relire la question.") {
     echo $message . "\n";
     }

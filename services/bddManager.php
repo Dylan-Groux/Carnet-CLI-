@@ -1,14 +1,21 @@
 <?php
+
+namespace Services;
+
+use \PDO;
+use \PDOException;
+
 // Singleton class pour gérer la connexion à la base de données
-class Database {
+class Database
+{
     private static ?Database $instance = null;
     private \PDO $pdo;
 
     private function __construct() {
-        $host = 'localhost';
-        $dbname = 'contact_cli';
-        $username = 'root';
-        $password = '';
+        $host = getenv('DB_HOST') ?: 'localhost';
+        $dbname = getenv('DB_NAME') ?: 'contact_cli';
+        $username = getenv('DB_USER') ?: 'root';
+        $password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
 
         // Connexion à la base de données avec gestion des erreurs
         try {
@@ -40,3 +47,5 @@ class Database {
         return $db->lastInsertId();
     }
 }
+
+$instance = Database::getInstance();

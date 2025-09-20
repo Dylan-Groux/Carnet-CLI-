@@ -1,5 +1,9 @@
 <?php
-class Contact {
+
+namespace Entity;
+
+class Contact
+{
     private int $id;
     private string $name;
     private string $email;
@@ -25,20 +29,18 @@ class Contact {
         return $this->phone_number;
     }
 
-    public function setName(?string $name): void {
-        $this->name = $name;
-    }
-    public function setEmail(?string $email): void {
-        $this->email = $email;
-    }
-    public function setPhoneNumber(?string $phone_number): void {
-        $this->phone_number = $phone_number;
-    }
-
-    public function __toString (): string {
+    /**
+     * Permet d'afficher un contact sous forme de chaîne de caractères
+     * @return string La représentation textuelle du contact
+     */
+    public function __toString(): string {
         return "ID: " . $this->id . ", Name: " . $this->name . ", Email: " . $this->email . ", Phone Number: " . $this->phone_number;
     }
 
+    /**
+     * Permet d'accéder dynamiquement aux propriétés privées
+     * @param string $property Le nom de la propriété à accéder
+     */
     public function __get($property) {
         if (property_exists($this, $property)) {
             return $this->$property;
