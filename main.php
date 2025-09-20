@@ -30,6 +30,13 @@ while (true) {
         echo "- create : Créer un nouveau contact\n";
         echo "- delete : Supprimer un contact\n";
         echo "- help : Afficher cette aide\n";
+        echo "- modify : Modifier un contact\n";
+        echo "- find : Rechercher des contacts\n";
+        echo "- exit : Quitter l'application\n";
+    } elseif ($line === 'modify') {
+        Commande::modify();
+    } elseif ($line === 'find') {
+        Commande::find();
     }
 
 }

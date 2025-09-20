@@ -18,7 +18,6 @@ class ContactRepository {
     /**
      * Récupère tous les contacts depuis la base de données
      * @return array Un tableau d'objets Contact
-     * @throws Exception Si une erreur se produit lors de la récupération des contacts
      */
     public static function findAll(): array {
         $db = Database::getInstance()->getPDO();
@@ -35,7 +34,6 @@ class ContactRepository {
      * Récupère un contact par son ID
      * @param int $id L'ID du contact à récupérer
      * @return array Un tableau contenant l'objet Contact correspondant, ou vide si non trouvé
-     * @throws Exception Si une erreur se produit lors de la récupération du contact
      */
     public static function getContactById($id): array {
         $db = Database::getInstance()->getPDO();
@@ -56,20 +54,19 @@ class ContactRepository {
      * @param string $email L'email du contact
      * @param string $phone_number Le numéro de téléphone du contact
      * @return Contact L'objet Contact créé
-     * @throws Exception Si une erreur se produit lors de la création du contact
      */
-    public static function createContact($name, $email, $phone_number): Contact {
+    public static function createContact($name, $email, $phone_number): ?Contact {
         $db = Database::getInstance()->getPDO();
 
         // Nettoyage et validation des entrées
         $sanitized = ContactManager::sanitizeInput($email, $phone_number);
         if (!$sanitized['isEmailValid']) {
             ContactManager::afficherErreur("L'email fourni n'est pas valide.");
-            exit;
+            return null;
         }
         if (!$sanitized['isPhoneValid']) {
             ContactManager::afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
-            exit;
+            return null;
         }
 
         $stmt = $db->prepare("INSERT INTO contact (name, email, phone_number) VALUES (:name, :email, :phone_number)");
@@ -89,7 +86,6 @@ class ContactRepository {
      * Supprime un contact de la base de données par son ID
      * @param int $id L'ID du contact à supprimer
      * @return void
-     * @throws Exception Si une erreur se produit lors de la suppression du contact
      */
     public static function deleteContact($id)  {
         $contact = self::getContactById($id);
@@ -104,4 +100,38 @@ class ContactRepository {
         ContactManager::afficherContacts($contact);
     }
 
+    /**
+     * Met à jour un contact existant dans la base de données
+     * @param int $id L'ID du contact à mettre à jour
+     * @param string $name Le nouveau nom du contact
+     * @param string $email Le nouvel email du contact
+     * @param string $phone_number Le nouveau numéro de téléphone du contact
+     * @return void
+     */
+    public static function updateContact($id, $name, $email, $phone_number) : ?Contact {
+        $db = Database::getInstance()->getPDO();
+
+        // Nettoyage et validation des entrées
+        $sanitized = ContactManager::sanitizeInput($email, $phone_number);
+        if (!$sanitized['isEmailValid']) {
+            ContactManager::afficherErreur("L'email fourni n'est pas valide.");
+            return null;
+        }
+        if (!$sanitized['isPhoneValid']) {
+            ContactManager::afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
+            return null;
+        }
+
+        $stmt = $db->prepare("UPDATE contact SET name = :name, email = :email, phone_number = :phone_number WHERE id = :id");
+        $stmt->execute([
+            'id' => $id,
+            'name' => $name,
+            'email' => $sanitized['email'],
+            'phone_number' => $sanitized['phone_number']
+        ]);
+
+        echo "Contact avec l'ID $id mis à jour.\n";
+        ContactManager::afficherContacts(self::getContactById($id));
+        return new Contact($id, $name, $sanitized['email'], $sanitized['phone_number']);
+    }
 }

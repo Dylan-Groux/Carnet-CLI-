@@ -4,8 +4,8 @@ require_once 'services/contactManager.php';
 class ContactSorter {
     public static function interactiveSort(array $contacts): array {
         do {
-            $critere = readline("Voulez vous trier votre liste ? si oui par quel critère ? (id, name, mail) si non tapez 'non' : ");
-            if ($critere === 'id' || $critere === 'name' || $critere === 'mail') {
+            $critere = readline("Voulez vous trier votre liste ? si oui par quel critère ? (id, name, mail, phone_number) si non tapez 'non' : ");
+            if ($critere === 'id' || $critere === 'name' || $critere === 'mail' || $critere === 'phone_number') {
                 $contacts = self::sort($contacts, $critere);
             } elseif ($critere === 'non') {
                 // Ne pas trier
@@ -21,14 +21,9 @@ class ContactSorter {
         if ($critere === 'id') {
             ksort($contacts); // Trie par clé (ici, id)
             ContactManager::afficherContacts($contacts);
-        } elseif ($critere === 'name') {
-            usort($contacts, function($a, $b) {
-                return strcmp($a->getName(), $b->getName());
-            });
-            ContactManager::afficherContacts($contacts);
-        } elseif ($critere === 'mail') {
-            usort($contacts, function($a, $b) {
-                return strcmp($a->getEmail(), $b->getEmail());
+        } elseif ($critere === 'name' || $critere === 'mail' || $critere === 'phone_number') {
+            usort($contacts, function($a, $b) use ($critere) {
+                return strcmp($a->$critere, $b->$critere);
             });
             ContactManager::afficherContacts($contacts);
         }

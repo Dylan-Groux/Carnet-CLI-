@@ -35,7 +35,14 @@ class Contact {
         $this->phone_number = $phone_number;
     }
 
-    public function toString (): string {
+    public function __toString (): string {
         return "ID: " . $this->id . ", Name: " . $this->name . ", Email: " . $this->email . ", Phone Number: " . $this->phone_number;
+    }
+
+    public function __get($property) {
+        if (property_exists($this, $property)) {
+            return $this->$property;
+        }
+        return null;
     }
 }
