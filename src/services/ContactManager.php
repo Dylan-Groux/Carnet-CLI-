@@ -18,8 +18,11 @@ class ContactManager
         return $contacts;
     }
 
-    public static function sanitizeInput(string $email, string $phone_number): array {
+    public static function sanitizeInput(string $email, string $phone_number, string $name): array {
         $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        $name = trim(strip_tags($name));
+        // Optionnel : n'autoriser que lettres, espaces, tirets et apostrophes
+        $name = preg_replace('/[^a-zA-ZÀ-ÿ\' -]/u', '', $name);
 
         // Formatage du numéro de téléphone : suppression des espaces, tirets, etc.
         $phone_number = preg_replace('/[^0-9+]/', '', $phone_number);
@@ -29,6 +32,7 @@ class ContactManager
         $isEmailValid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
         $isPhoneValid = preg_match('/^(\+?\d{10,15})$/', $phone_number);
         return [
+            'name' => $name,
             'email' => $email,
             'phone_number' => $formatted_phone,
             'isEmailValid' => $isEmailValid,

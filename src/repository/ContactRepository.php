@@ -65,7 +65,7 @@ class ContactRepository
         $db = $this->database->getPDO();
 
         // Nettoyage et validation des entrées
-        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number);
+        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number, $name);
         if (!$sanitized['isEmailValid']) {
             $this->contactManager->afficherErreur("L'email fourni n'est pas valide.");
             return null;
@@ -77,7 +77,7 @@ class ContactRepository
 
         $stmt = $db->prepare("INSERT INTO contact (name, email, phone_number) VALUES (:name, :email, :phone_number)");
         $stmt->execute([
-            'name' => $name,
+            'name' => $sanitized['name'],
             'email' => $sanitized['email'],
             'phone_number' => $sanitized['phone_number']
         ]);
@@ -117,7 +117,7 @@ class ContactRepository
         $db = $this->database->getPDO();
 
         // Nettoyage et validation des entrées
-        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number);
+        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number, $name);
         if (!$sanitized['isEmailValid']) {
             $this->contactManager->afficherErreur("L'email fourni n'est pas valide.");
             return null;
@@ -130,7 +130,7 @@ class ContactRepository
         $stmt = $db->prepare("UPDATE contact SET name = :name, email = :email, phone_number = :phone_number WHERE id = :id");
         $stmt->execute([
             'id' => $id,
-            'name' => $name,
+            'name' => $sanitized['name'],
             'email' => $sanitized['email'],
             'phone_number' => $sanitized['phone_number']
         ]);

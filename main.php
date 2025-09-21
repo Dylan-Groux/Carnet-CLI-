@@ -37,7 +37,7 @@ function mainLoop() {
             echo "- delete : Supprimer un contact\n";
             echo "- help : Afficher cette aide\n";
             echo "- modify : Modifier un contact\n";
-            echo "- find : Rechercher des contacts\n";
+            echo "- find : Rechercher des contacts via des critères (nom, email, téléphone)\n";
             echo "- exit : Quitter l'application\n";
         } elseif ($line === 'modify') {
             $command->modifyContact();
