@@ -1,13 +1,13 @@
 <?php
 
-require_once 'services/commandManager.php';
-
-use Services\CommandeManager;
+use Services\CommandManager;
 use Services\ContactManager;
+
+require_once 'src/services/CommandManager.php';
 
 function mainLoop() {
     $contactManager = new ContactManager();
-    $commande = new CommandeManager();
+    $command = new CommandManager();
 
     while (true) {
         $line = readline("Entrer votre commande : ");
@@ -17,18 +17,18 @@ function mainLoop() {
             break;
         }
         if ($line === 'liste') {
-            $commande->list();
+            $command->listContacts();
         } elseif ($line === 'detail') {
             $id = readline("Entrez l'ID du contact : ");
             if (is_numeric($id)) {
-                $commande->detail($id);
+                $command->detailContact($id);
             } else {
                 $contactManager->afficherErreur("L'ID doit être un nombre.");
             }
         } elseif ($line === 'create') {
-            $commande->create();
+            $command->createContact();
         } elseif ($line === 'delete') {
-            $commande->delete();
+            $command->deleteContact();
         } elseif ($line === 'help') {
             echo "Liste des commandes disponibles :\n";
             echo "- liste : Afficher la liste des contacts\n";
@@ -40,9 +40,9 @@ function mainLoop() {
             echo "- find : Rechercher des contacts\n";
             echo "- exit : Quitter l'application\n";
         } elseif ($line === 'modify') {
-            $commande->modify();
+            $command->modifyContact();
         } elseif ($line === 'find') {
-            $commande->find();
+            $command->findContacts();
         }
     }
 }

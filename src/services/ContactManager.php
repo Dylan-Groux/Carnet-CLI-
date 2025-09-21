@@ -1,17 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Services;
 
 class ContactManager
 {
-    public static function afficherErreur($message = "Erreur : veuillez relire la question.") {
+    public static function afficherErreur(string $message = "Erreur : veuillez relire la question."): string {
     echo $message . "\n";
+    return $message;
     }
 
-    public static function afficherContacts(array $contacts) {
+    public static function afficherContacts(array $contacts): array {
         foreach ($contacts as $contact) {
             echo $contact . "\n";
         }
+        return $contacts;
     }
 
     public static function sanitizeInput(string $email, string $phone_number): array {

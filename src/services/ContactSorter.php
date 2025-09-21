@@ -2,9 +2,9 @@
 
 namespace Services;
 
-require_once 'services/contactManager.php';
-
 use Services\ContactManager;
+
+require_once 'src/services/ContactManager.php';
 
 class ContactSorter
 {
@@ -23,13 +23,13 @@ class ContactSorter
                 // Ne pas trier
                 break;
             } else {
-                $this->contactManager->afficherErreur("Critère de tri invalide, veuillez choisir 'id', 'name' ou 'mail'. si vous ne souhaitez pas trier, tapez 'non'.");
+                $this->contactManager->afficherErreur("Critère de tri invalide, veuillez choisir 'id', 'name', 'mail' ou 'phone_number'. si vous ne souhaitez pas trier, tapez 'non'.");
             }
-        } while ($critere !== 'id' && $critere !== 'name' && $critere !== 'mail');
+        } while ($critere !== 'id' && $critere !== 'name' && $critere !== 'mail' && $critere !== 'phone_number' && $critere !== 'non');
         return $contacts;
     }
 
-    public function sort(array $contacts, string $critere) {
+    public function sort(array $contacts, string $critere): array {
         if ($critere === 'id') {
             ksort($contacts); // Trie par clé (ici, id)
             $this->contactManager->afficherContacts($contacts);

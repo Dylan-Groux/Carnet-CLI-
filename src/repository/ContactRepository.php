@@ -2,14 +2,14 @@
 
 namespace Repository;
 
-require_once 'services/bddManager.php';
-require_once 'entity/Contact.php';
-require_once 'services/contactManager.php';
-
 use Entity\Contact;
 use Services\Database;
 use Services\ContactManager;
 use \PDO;
+
+require_once 'src/services/BddManager.php';
+require_once 'src/entity/Contact.php';
+require_once 'src/services/ContactManager.php';
 
 class ContactRepository
 {

@@ -5,7 +5,11 @@ namespace Services;
 use \PDO;
 use \PDOException;
 
-// Singleton class pour gérer la connexion à la base de données
+/**
+ * Classe de gestion de la connexion à la base de données
+ * Utilise le pattern Singleton pour s'assurer qu'une seule instance de la connexion existe
+ * @return Database L'instance de la connexion à la base de données
+ */
 class Database
 {
     private static ?Database $instance = null;
@@ -30,22 +34,20 @@ class Database
         }
     }
 
-    public static function getInstance() {
+    public static function getInstance(): Database {
         if (self::$instance === null) {
             self::$instance = new Database();
         }
         return self::$instance;
     }
 
-    public function getPDO() {
+    public function getPDO(): PDO {
         return $this->pdo;
     }
 
     // méthode pour obtenir le dernier ID inséré
-    public static function getLastInsertId() {
+    public static function getLastInsertId(): string {
         $db = Database::getInstance()->getPDO();
-        return $db->lastInsertId();
+        return (string) $db->lastInsertId();
     }
 }
-
-$instance = Database::getInstance();
