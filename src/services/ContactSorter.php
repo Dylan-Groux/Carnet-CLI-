@@ -35,6 +35,7 @@ class ContactSorter
             $this->contactManager->afficherContacts($contacts);
         } elseif ($critere === 'name' || $critere === 'mail' || $critere === 'phone_number') {
             usort($contacts, function($a, $b) use ($critere) {
+                // Accède dynamiquement à la propriété de l'objet via __get
                 return strcmp($a->$critere, $b->$critere);
             });
             $this->contactManager->afficherContacts($contacts);
