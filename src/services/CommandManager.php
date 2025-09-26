@@ -1,15 +1,11 @@
 <?php
 
-namespace Services;
+namespace App\Services;
 
-use Entity\Contact;
-use Repository\ContactRepository;
-use Services\ContactManager;
-use Services\ContactSorter;
-
-require_once 'src/services/ContactManager.php';
-require_once 'src/services/ContactSorter.php';
-require_once 'src/repository/ContactRepository.php';
+use App\Entity\Contact;
+use App\Repository\ContactRepository;
+use App\Services\ContactManager;
+use App\Services\ContactSorter;
 
 class CommandManager
 {

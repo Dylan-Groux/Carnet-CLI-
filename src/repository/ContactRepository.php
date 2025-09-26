@@ -1,15 +1,11 @@
 <?php
 
-namespace Repository;
+namespace App\Repository;
 
-use Entity\Contact;
-use Services\Database;
-use Services\ContactManager;
+use App\Entity\Contact;
+use App\Services\Database;
+use App\Services\ContactManager;
 use \PDO;
-
-require_once 'src/services/BddManager.php';
-require_once 'src/entity/Contact.php';
-require_once 'src/services/ContactManager.php';
 
 class ContactRepository
 {
@@ -23,7 +19,7 @@ class ContactRepository
 
     /**
      * Récupère tous les contacts depuis la base de données
-     * @return array Un tableau d'objets Contact
+     * @return Contact[] Un tableau d'objets Contact
      */
     public function findAll(): array {
         $db = $this->database->getPDO();
@@ -31,7 +27,7 @@ class ContactRepository
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($result as $key => $value) {
-            $result[$key] = new Contact($value['id'], $value['name'], $value['email'], $value['phone_number']);
+            $result[$key] = new Contact($value['id'], $value['name'], $value['email'], $value['phone_number']); //auto : ? featch all + parametre
         }
         return $result;
     }

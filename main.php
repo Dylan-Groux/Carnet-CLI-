@@ -1,7 +1,9 @@
 <?php
 
-use Services\CommandManager;
-use Services\ContactManager;
+require_once 'vendor/autoload.php';
+
+use App\Services\CommandManager;
+use App\Services\ContactManager;
 
 require_once 'src/services/CommandManager.php';
 

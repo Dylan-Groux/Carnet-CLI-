@@ -1,8 +1,8 @@
 <?php
 
-namespace Services;
+namespace App\Services;
 
-use Services\ContactManager;
+use App\Services\ContactManager;
 
 require_once 'src/services/ContactManager.php';
 
