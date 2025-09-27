@@ -5,7 +5,7 @@ namespace App\Services\Command;
 use App\Services\CommandManager;
 use App\Services\CommandInterface;
 
-class ListContactsCommand implements CommandInterface
+class InfoContactCommand implements CommandInterface
 {
     private CommandManager $commandManager;
     
@@ -14,14 +14,14 @@ class ListContactsCommand implements CommandInterface
     }
 
     public function getName(): string {
-        return 'liste';
+        return 'detail';
     }
 
     public function execute(array $args): void {
-        $this->commandManager->listContacts();
+        $this->commandManager->detailContact((int)$args[0]);
     }
 
     public function getDescription(): string {
-        return 'Liste - Affiche la liste des contacts';
+        return 'Detail - Affiche les détails d\'un contact par son ID';
     }
 }

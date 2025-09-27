@@ -5,7 +5,7 @@ namespace App\Services\Command;
 use App\Services\CommandManager;
 use App\Services\CommandInterface;
 
-class ListContactsCommand implements CommandInterface
+class DeleteContactCommand implements CommandInterface
 {
     private CommandManager $commandManager;
     
@@ -14,14 +14,14 @@ class ListContactsCommand implements CommandInterface
     }
 
     public function getName(): string {
-        return 'liste';
+        return 'delete';
     }
 
     public function execute(array $args): void {
-        $this->commandManager->listContacts();
+        $this->commandManager->deleteContact((int)$args[0]);
     }
 
     public function getDescription(): string {
-        return 'Liste - Affiche la liste des contacts';
+        return 'Delete - Supprime un contact par son ID';
     }
 }

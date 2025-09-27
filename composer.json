@@ -11,5 +11,7 @@
             "email": "dylangroux2105@gmail.com"
         }
     ],
-    "require": {}
+    "require-dev": {
+        "phpunit/phpunit": "^12.3"
+    }
 }
