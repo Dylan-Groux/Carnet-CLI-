@@ -9,23 +9,28 @@ use ReflectionClass;
  * Permet de s'assurer que chaque commande implémente CommandInterface
  * et de les instancier correctement
  */
-class CheckCommandManager
+class CommandProvider
 {
     private CommandManager $commandManager;
     private ?array $commands = null;
-    private static ?CheckCommandManager $instance = null;
+    private static ?CommandProvider $instance = null;
     
     public function __construct(CommandManager $commandManager) {
         $this->commandManager = $commandManager;
     }
 
-    public static function getInstance(CommandManager $commandManager): CheckCommandManager {
+    public static function getInstance(CommandManager $commandManager): CommandProvider {
         if (self::$instance === null) {
-            self::$instance = new CheckCommandManager($commandManager);
+            self::$instance = new CommandProvider($commandManager);
         }
         return self::$instance;
     }
 
+    /**
+     * Charge dynamiquement les commandes depuis le répertoire Command
+     * Vérifie que chaque commande implémente CommandInterface
+     * @return CommandInterface[] Liste des instances de commandes valides
+     */
     public function loadCommands(): array {
         if ($this->commands !== null) {
             return $this->commands;
@@ -47,6 +52,10 @@ class CheckCommandManager
         return $commands;
     }
 
+    /**
+     * Retourne un tableau associatif des noms de commandes et leurs descriptions
+     * @return array [ 'commandName' => CommandInterface, ... ], [ 'commandName' => 'Description', ... ]
+     */
     public function getCommandNamesAndDescriptions(): array {
         $commands = $this->loadCommands();
         $commandMap = [];

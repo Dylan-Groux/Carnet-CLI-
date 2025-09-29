@@ -4,8 +4,6 @@ namespace App\Services;
 
 use App\Services\ContactManager;
 
-require_once 'src/services/ContactManager.php';
-
 class ContactSorter
 {
     private ContactManager $contactManager;
@@ -33,13 +31,21 @@ class ContactSorter
         if ($critere === 'id') {
             ksort($contacts); // Trie par clé (ici, id)
             $this->contactManager->afficherContacts($contacts);
-        } elseif ($critere === 'name' || $critere === 'mail' || $critere === 'phone_number') {
-            usort($contacts, function($a, $b) use ($critere) {
+        } elseif ($critere === 'name') {
+            usort($contacts, function($a, $b) {
                 // Accède dynamiquement à la propriété de l'objet via __get
-                return strcmp($a->$critere, $b->$critere);
+                return strcmp($a->getName(), $b->getName());
             });
-            $this->contactManager->afficherContacts($contacts);
+        } elseif ($critere === 'mail') {
+            usort($contacts, function($a, $b) {
+                return strcmp($a->getEmail(), $b->getEmail());
+            });
+        } elseif ($critere === 'phone_number') {
+            usort($contacts, function($a, $b) {
+                return strcmp($a->getPhoneNumber(), $b->getPhoneNumber());
+            });
         }
-    return $contacts;
+        $this->contactManager->afficherContacts($contacts);
+        return $contacts;
     }
 }

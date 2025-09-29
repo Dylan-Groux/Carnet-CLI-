@@ -5,7 +5,7 @@ namespace App\Services\Command;
 use App\Services\CommandManager;
 use App\Services\CommandInterface;
 
-class InfoContactCommand implements CommandInterface
+class DetailContactCommand implements CommandInterface
 {
     private CommandManager $commandManager;
     
@@ -18,6 +18,14 @@ class InfoContactCommand implements CommandInterface
     }
 
     public function execute(array $args): void {
+    if (!isset($args[0]) || !is_numeric($args[0])) {
+        $id = readline("Entrez l'ID du contact à afficher : ");
+        if (!is_numeric($id)) {
+            echo "ID invalide.\n";
+            return;
+        }
+        $args[0] = $id;
+    }
         $this->commandManager->detailContact((int)$args[0]);
     }
 

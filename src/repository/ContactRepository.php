@@ -3,18 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\Contact;
+use App\Services\ContactHydrator;
 use App\Services\Database;
-use App\Services\ContactManager;
 use \PDO;
 
 class ContactRepository
 {
     private Database $database;
-    private ContactManager $contactManager;
 
     public function __construct() {
         $this->database = Database::getInstance();
-        $this->contactManager = new ContactManager();
     }
 
     /**
@@ -26,10 +24,7 @@ class ContactRepository
         $stmt = $db->query(("SELECT * FROM contact"));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        foreach ($result as $key => $value) {
-            $result[$key] = new Contact($value['id'], $value['name'], $value['email'], $value['phone_number']); //auto : ? featch all + parametre
-        }
-        return $result;
+        return ContactHydrator::hydrateAll($result);
     }
 
     /**
@@ -37,17 +32,16 @@ class ContactRepository
      * @param int $id L'ID du contact à récupérer
      * @return array Un tableau contenant l'objet Contact correspondant, ou vide si non trouvé
      */
-    public function getContactById(int $id): array {
+    public function getContactById(int $id): Contact {
         $db = $this->database->getPDO();
         $stmt = $db->prepare("SELECT * FROM contact WHERE id = :id");
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $contacts = [];
-        foreach ($result as $row) {
-            $contacts[] = new Contact($row['id'], $row['name'], $row['email'], $row['phone_number']);
+        
+        if (empty($result)) {
+            throw new \RuntimeException("Aucun contact trouvé avec l'ID $id.");
         }
-        return $contacts;
+        return ContactHydrator::hydrate($result[0]);
     }
 
     /**
@@ -60,27 +54,14 @@ class ContactRepository
     public function createContact(string $name, string $email, string $phone_number): ?Contact {
         $db = $this->database->getPDO();
 
-        // Nettoyage et validation des entrées
-        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number, $name);
-        if (!$sanitized['isEmailValid']) {
-            $this->contactManager->afficherErreur("L'email fourni n'est pas valide.");
-            return null;
-        }
-        if (!$sanitized['isPhoneValid']) {
-            $this->contactManager->afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
-            return null;
-        }
-
         $stmt = $db->prepare("INSERT INTO contact (name, email, phone_number) VALUES (:name, :email, :phone_number)");
         $stmt->execute([
-            'name' => $sanitized['name'],
-            'email' => $sanitized['email'],
-            'phone_number' => $sanitized['phone_number']
+            'name' => $name,
+            'email' => $email,
+            'phone_number' => $phone_number
         ]);
 
-        $this->contactManager->afficherContacts($this->getContactById(Database::getLastInsertId()));
-
-        return new Contact((int)Database::getLastInsertId(), $name, $sanitized['email'], $sanitized['phone_number']);
+        return new Contact((int)Database::getLastInsertId(), $name, $email, $phone_number);
     }
 
     /**
@@ -88,17 +69,14 @@ class ContactRepository
      * @param int $id L'ID du contact à supprimer
      * @return void
      */
-    public function deleteContact(int $id)  {
+    public function deleteContact(int $id) {
         $contact = $this->getContactById($id);
         if (empty($contact)) {
-            $this->contactManager->afficherErreur("Aucun contact trouvé avec l'ID $id.");
-            return;
+            return throw new \RuntimeException("Aucun contact trouvé avec l'ID $id.");
         }
         $db = $this->database->getPDO();
         $stmt = $db->prepare("DELETE FROM contact WHERE id = :id");
         $stmt->execute(['id' => $id]);
-
-        $this->contactManager->afficherContacts($contact);
     }
 
     /**
@@ -112,26 +90,14 @@ class ContactRepository
     public function updateContact(int $id, string $name, string $email, string $phone_number) : ?Contact {
         $db = $this->database->getPDO();
 
-        // Nettoyage et validation des entrées
-        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number, $name);
-        if (!$sanitized['isEmailValid']) {
-            $this->contactManager->afficherErreur("L'email fourni n'est pas valide.");
-            return null;
-        }
-        if (!$sanitized['isPhoneValid']) {
-            $this->contactManager->afficherErreur("Le numéro de téléphone fourni n'est pas valide.");
-            return null;
-        }
-
         $stmt = $db->prepare("UPDATE contact SET name = :name, email = :email, phone_number = :phone_number WHERE id = :id");
         $stmt->execute([
             'id' => $id,
-            'name' => $sanitized['name'],
-            'email' => $sanitized['email'],
-            'phone_number' => $sanitized['phone_number']
+            'name' => $name,
+            'email' => $email,
+            'phone_number' => $phone_number
         ]);
 
-        $this->contactManager->afficherContacts($this->getContactById($id));
-        return new Contact($id, $name, $sanitized['email'], $sanitized['phone_number']);
+        return new Contact($id, $name, $email, $phone_number);
     }
 }

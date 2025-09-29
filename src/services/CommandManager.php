@@ -40,16 +40,19 @@ class CommandManager
         $name = readline("Entrez le nom du contact : ");
         $email = readline("Entrez l'email du contact : ");
         $phone_number = readline("Entrez le numéro de téléphone du contact : ");
-        $this->contactRepository->createContact($name, $email, $phone_number);
+        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number, $name);
+        $this->contactRepository->createContact($sanitized['name'], $sanitized['email'], $sanitized['phone_number']);
+        ContactManager::afficherContacts($this->contactRepository->getContactById(Database::getLastInsertId()));
     }
 
     public function deleteContact() {
         $id = readline("Entrez l'ID du contact à supprimer : ");
         if (is_numeric($id)) {
-            $this->contactRepository->deleteContact($id);
+            $contact = $this->contactRepository->deleteContact($id);
         } else {
             $this->contactManager->afficherErreur("L'ID doit être un nombre.");
         }
+        ContactManager::afficherContacts($contact);
     }
 
     /**
@@ -58,34 +61,21 @@ class CommandManager
      */
     public function modifyContact() : ?Contact {
         $id = readline("Entrez l'ID du contact à modifier : ");
-        if (!is_numeric($id)) {
-            $this->contactManager->afficherErreur("L'ID doit être un nombre.");
-            return null;
-        }
-        $contacts = $this->contactRepository->getContactById($id);
-        if (empty($contacts)) {
-            $this->contactManager->afficherErreur("Aucun contact trouvé avec l'ID $id.");
-            return null;
-        }
-        $contact = $contacts[0];
-        echo "Contact actuel : " . $contact . "\n";
+
+        $this->contactManager->showContact((int)$id);
 
         $name = readline("Entrez le nouveau nom du contact (laisser vide pour ne pas changer) : ");
         $email = readline("Entrez le nouvel email du contact (laisser vide pour ne pas changer) : ");
         $phone_number = readline("Entrez le nouveau numéro de téléphone du contact (laisser vide pour ne pas changer) : ");
 
-        // Utiliser les valeurs actuelles si l'entrée est vide
-        if (empty($name)) {
-            $name = $contact->getName();
-        }
-        if (empty($email)) {
-            $email = $contact->getEmail();
-        }
-        if (empty($phone_number)) {
-            $phone_number = $contact->getPhoneNumber();
-        }
+        $lastInfo = $this->contactManager->getLastInformationContact((int)$id, $name, $email, $phone_number);
 
-        return $this->contactRepository->updateContact($id, $name, $email, $phone_number);
+        $this->contactRepository->updateContact((int)$lastInfo->getId(), $lastInfo->getName(), $lastInfo->getEmail(), $lastInfo->getPhoneNumber());
+
+        $updateContact = $this->contactManager->showContact((int)$id);
+
+        echo "Contact modifié : " . $updateContact . "\n";
+        return $updateContact;
     }
 
     /**

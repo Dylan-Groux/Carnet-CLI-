@@ -18,7 +18,7 @@ class FindContactCommand implements CommandInterface
     }
 
     public function execute(array $args): void {
-        $this->commandManager->findContacts($args);
+        $this->commandManager->findContacts();
     }
 
     public function getDescription(): string {

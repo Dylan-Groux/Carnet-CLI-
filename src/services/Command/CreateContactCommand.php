@@ -18,7 +18,7 @@ class CreateContactCommand implements CommandInterface
     }
 
     public function execute(array $args): void {
-        $this->commandManager->createContact($args);
+        $this->commandManager->createContact();
     }
 
     public function getDescription(): string {

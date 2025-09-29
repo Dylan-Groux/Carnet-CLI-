@@ -36,15 +36,4 @@ class Contact
     public function __toString(): string {
         return "ID: " . $this->id . ", Name: " . $this->name . ", Email: " . $this->email . ", Phone Number: " . $this->phone_number;
     }
-
-    /**
-     * Permet d'accéder dynamiquement aux propriétés privées
-     * @param string $property Le nom de la propriété à accéder
-     */
-    public function __get($property) {
-        if (property_exists($this, $property)) {
-            return $this->$property;
-        }
-        return null;
-    }
 }

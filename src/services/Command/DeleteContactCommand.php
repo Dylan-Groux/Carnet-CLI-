@@ -18,7 +18,7 @@ class DeleteContactCommand implements CommandInterface
     }
 
     public function execute(array $args): void {
-        $this->commandManager->deleteContact((int)$args[0]);
+        $this->commandManager->deleteContact();
     }
 
     public function getDescription(): string {

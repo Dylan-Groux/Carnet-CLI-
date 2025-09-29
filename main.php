@@ -3,12 +3,11 @@
 require_once 'vendor/autoload.php';
 
 use App\Services\CommandManager;
-use App\Services\CommandInterface;
-use App\Services\CheckCommandManager;
+use App\Services\CommandProvider;
 
 function mainLoop() {
     $commandManager = new CommandManager();
-    $checker = CheckCommandManager::getInstance($commandManager);
+    $checker = CommandProvider::getInstance($commandManager);
     list($commandMap, $commandInfo) = $checker->getCommandNamesAndDescriptions();
 
     while (true) {
