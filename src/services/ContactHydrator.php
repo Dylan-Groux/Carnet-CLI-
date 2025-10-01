@@ -6,8 +6,11 @@ use App\Entity\Contact;
 
 class ContactHydrator
 {
-    public static function hydrate(array $row): Contact
+    public static function hydrate(array $row): ?Contact
     {
+        if (empty($row)) {
+            return null;
+        }
         return new Contact($row['id'], $row['name'], $row['email'], $row['phone_number']);
     }
 

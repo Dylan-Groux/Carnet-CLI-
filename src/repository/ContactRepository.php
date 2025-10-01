@@ -6,6 +6,8 @@ use App\Entity\Contact;
 use App\Services\ContactHydrator;
 use App\Services\Database;
 use \PDO;
+use RuntimeException;
+use App\Services\DisplayObjectService;
 
 class ContactRepository
 {
@@ -30,14 +32,13 @@ class ContactRepository
     /**
      * Récupère un contact par son ID
      * @param int $id L'ID du contact à récupérer
-     * @return array Un tableau contenant l'objet Contact correspondant, ou vide si non trouvé
+     * @return Contact Un tableau contenant l'objet Contact correspondant, ou vide si non trouvé
      */
-    public function getContactById(int $id): Contact {
+    public function getContactById(int $id): ?Contact {
         $db = $this->database->getPDO();
         $stmt = $db->prepare("SELECT * FROM contact WHERE id = :id");
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
         if (empty($result)) {
             throw new \RuntimeException("Aucun contact trouvé avec l'ID $id.");
         }
@@ -61,7 +62,7 @@ class ContactRepository
             'phone_number' => $phone_number
         ]);
 
-        return new Contact((int)Database::getLastInsertId(), $name, $email, $phone_number);
+        return new Contact($this->database->getPDO()->lastInsertId(), $name, $email, $phone_number);
     }
 
     /**
@@ -69,14 +70,15 @@ class ContactRepository
      * @param int $id L'ID du contact à supprimer
      * @return void
      */
-    public function deleteContact(int $id) {
+    public function deleteContact(int $id): Contact {
         $contact = $this->getContactById($id);
         if (empty($contact)) {
-            return throw new \RuntimeException("Aucun contact trouvé avec l'ID $id.");
+            throw new \RuntimeException("Aucun contact trouvé avec l'ID $id.");
         }
         $db = $this->database->getPDO();
         $stmt = $db->prepare("DELETE FROM contact WHERE id = :id");
         $stmt->execute(['id' => $id]);
+        return $contact;
     }
 
     /**

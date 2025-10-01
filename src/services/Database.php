@@ -44,10 +44,4 @@ class Database
     public function getPDO(): PDO {
         return $this->pdo;
     }
-
-    // méthode pour obtenir le dernier ID inséré
-    public static function getLastInsertId(): string {
-        $db = Database::getInstance()->getPDO();
-        return (string) $db->lastInsertId();
-    }
 }

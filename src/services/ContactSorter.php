@@ -21,7 +21,7 @@ class ContactSorter
                 // Ne pas trier
                 break;
             } else {
-                $this->contactManager->afficherErreur("Critère de tri invalide, veuillez choisir 'id', 'name', 'mail' ou 'phone_number'. si vous ne souhaitez pas trier, tapez 'non'.");
+                DisplayObjectService::displayError("Critère de tri invalide, veuillez choisir 'id', 'name', 'mail' ou 'phone_number'. si vous ne souhaitez pas trier, tapez 'non'.");
             }
         } while ($critere !== 'id' && $critere !== 'name' && $critere !== 'mail' && $critere !== 'phone_number' && $critere !== 'non');
         return $contacts;
@@ -30,7 +30,7 @@ class ContactSorter
     public function sort(array $contacts, string $critere): array {
         if ($critere === 'id') {
             ksort($contacts); // Trie par clé (ici, id)
-            $this->contactManager->afficherContacts($contacts);
+            DisplayObjectService::displayObjects($contacts);
         } elseif ($critere === 'name') {
             usort($contacts, function($a, $b) {
                 // Accède dynamiquement à la propriété de l'objet via __get
@@ -45,7 +45,7 @@ class ContactSorter
                 return strcmp($a->getPhoneNumber(), $b->getPhoneNumber());
             });
         }
-        $this->contactManager->afficherContacts($contacts);
+        DisplayObjectService::displayObjects($contacts);
         return $contacts;
     }
 }

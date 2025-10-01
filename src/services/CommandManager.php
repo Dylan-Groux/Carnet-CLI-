@@ -12,47 +12,81 @@ class CommandManager
     private ContactRepository $contactRepository;
     private ContactManager $contactManager;
     private ContactSorter $contactSorter;
+    private Database $database;
 
     public function __construct() {
         $this->contactRepository = new ContactRepository();
         $this->contactManager = new ContactManager();
         $this->contactSorter = new ContactSorter();
+        $this->database = Database::getInstance();
     }
 
-    public function listContacts() {
+    /**
+     * Affiche la liste des contacts
+     * @return Contact[] La liste des contacts triés
+     */
+    public function listContacts(): array {
         $contacts = $this->contactRepository->findAll();
-        $this->contactManager->afficherContacts($contacts);
+        DisplayObjectService::displayObjects($contacts);
         // Appel de la demande du tri
         $contacts = $this->contactSorter->interactiveSort($contacts);
+        return $contacts;
     }
 
-    public function detailContact(int $id) {
-        $contacts = $this->contactRepository->getContactById($id);
-        if (empty($contacts)) {
-            $this->contactManager->afficherErreur("Aucun contact trouvé avec l'ID $id.");
+    /**
+     * Affiche les détails d'un contact par son ID
+     * @param int $id L'ID du contact
+     * @return Contact|null Le contact trouvé ou null s'il n'existe pas
+     */
+    public function detailContact(int $id): ?Contact {
+        try {
+            $contacts = $this->contactManager->showContact((int)$id);
+            DisplayObjectService::displaySuccess("Contact trouvé avec succès.");
+            DisplayObjectService::displayObject($contacts);
+            return $contacts;
+        } catch (\RuntimeException $e) {
+            DisplayObjectService::displayError($e->getMessage());
             return null;
-        } else {
-            $this->contactManager->afficherContacts($contacts);
         }
     }
-
-    public function createContact() {
+    
+    /**
+     * Crée un nouveau contact
+     * @return Contact Le contact créé
+     */
+    public function createContact(): Contact {
         $name = readline("Entrez le nom du contact : ");
         $email = readline("Entrez l'email du contact : ");
         $phone_number = readline("Entrez le numéro de téléphone du contact : ");
-        $sanitized = $this->contactManager->sanitizeInput($email, $phone_number, $name);
+        $sanitized = DisplayObjectService::sanitizeContactObjectInput($name, $email, $phone_number);
         $this->contactRepository->createContact($sanitized['name'], $sanitized['email'], $sanitized['phone_number']);
-        ContactManager::afficherContacts($this->contactRepository->getContactById(Database::getLastInsertId()));
+        $id = $this->database->getPDO()->lastInsertId();
+        $contact = new Contact($id, $sanitized['name'], $sanitized['email'], $sanitized['phone_number']);
+        DisplayObjectService::displaySuccess("Contact créé avec succès.");
+        return $contact;
     }
 
-    public function deleteContact() {
+    /**
+     * Supprime un contact par son ID
+     * @return Contact|null Le contact supprimé ou null en cas d'erreur
+     */
+    public function deleteContact(): ?Contact {
         $id = readline("Entrez l'ID du contact à supprimer : ");
-        if (is_numeric($id)) {
-            $contact = $this->contactRepository->deleteContact($id);
-        } else {
-            $this->contactManager->afficherErreur("L'ID doit être un nombre.");
+        if (!is_numeric($id)) {
+            DisplayObjectService::displayError("L'ID doit être un nombre.");
+            return null;
         }
-        ContactManager::afficherContacts($contact);
+        try {
+            $contact = $this->contactRepository->deleteContact($id);
+            if ($contact !== null) {
+                DisplayObjectService::displaySuccess("Contact supprimé avec succès.");
+                DisplayObjectService::displayObject($contact);
+            }
+            return $contact;
+        } catch (\RuntimeException $e) {
+            DisplayObjectService::displayError($e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -72,10 +106,9 @@ class CommandManager
 
         $this->contactRepository->updateContact((int)$lastInfo->getId(), $lastInfo->getName(), $lastInfo->getEmail(), $lastInfo->getPhoneNumber());
 
-        $updateContact = $this->contactManager->showContact((int)$id);
-
-        echo "Contact modifié : " . $updateContact . "\n";
-        return $updateContact;
+        DisplayObjectService::displaySuccess("Contact modifié avec succès.");
+        DisplayObjectService::displayObject($lastInfo);
+        return $lastInfo;
     }
 
     /**
@@ -86,19 +119,27 @@ class CommandManager
         $contacts = $this->contactRepository->findAll();
         $field = readline("Par quel champ voulez-vous rechercher ? (name, email, phone_number) : ");
         if (!in_array($field, ['name', 'email', 'phone_number'])) {
-            $this->contactManager->afficherErreur("Champ de recherche invalide. Choisissez 'name', 'email' ou 'phone_number'.");
+            DisplayObjectService::displayError("Champ de recherche invalide. Choisissez 'name', 'email' ou 'phone_number'.");
             return [];
         }
         $search = readline("Entrez la valeur à rechercher : ");
         $found = [];
         foreach ($contacts as $contact) {
-            if ($contact->$field === $search) {
-                echo $contact . "\n"; // Utilise __toString()
-                $found[] = $contact;
+            // Génère dynamiquement le nom du getter
+            $getter = 'get' . str_replace(' ', '', ucwords(str_replace('_', ' ', $field)));
+            if (method_exists($contact, $getter)) {
+                $value = $contact->$getter();
+                if ($value === $search) {
+                    DisplayObjectService::displayObject($contact);
+                    $found[] = $contact;
+                }
+            } else {
+                DisplayObjectService::displayError("Méthode $getter n'existe pas dans la classe Contact.");
+                return [];
             }
         }
         if (empty($found)) {
-            $this->contactManager->afficherErreur("Aucun contact trouvé avec le $field $search.");
+            DisplayObjectService::displayError("Aucun contact trouvé avec le $field $search.");
         }
         return $found;
     }
