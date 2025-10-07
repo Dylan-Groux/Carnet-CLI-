@@ -7,9 +7,8 @@ use App\Services\ContactHydrator;
 use App\Services\Database;
 use \PDO;
 use RuntimeException;
-use App\Services\DisplayObjectService;
 
-class ContactRepository
+class ContactManager
 {
     private Database $database;
 

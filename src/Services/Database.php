@@ -16,10 +16,10 @@ class Database
     private \PDO $pdo;
 
     private function __construct() {
-        $host = getenv('DB_HOST') ?: 'localhost';
-        $dbname = getenv('DB_NAME') ?: 'contact_cli';
-        $username = getenv('DB_USER') ?: 'root';
-        $password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $dbname = $_ENV['DB_NAME'] ?? 'contact_cli';
+        $username = $_ENV['DB_USER'] ?? 'root';
+        $password = array_key_exists('DB_PASS', $_ENV) ? $_ENV['DB_PASS'] : '';
 
         // Connexion à la base de données avec gestion des erreurs
         try {

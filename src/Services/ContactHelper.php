@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Repository\ContactRepository;
+use App\Repository\ContactManager;
 use App\Entity\Contact;
 
-class ContactManager
+class ContactHelper
 {
-    private ContactRepository $contactRepository;
+    private ContactManager $contactManager;
 
     public function __construct() {
-        $this->contactRepository = new ContactRepository();
+        $this->contactManager = new ContactManager();
     }
 
     /**
@@ -21,7 +21,7 @@ class ContactManager
      * @return Contact Le contact trouvé
      */
     public function showContact(int $id): Contact {
-        $contact = $this->contactRepository->getContactById((int)$id);
+        $contact = $this->contactManager->getContactById((int)$id);
         if ($contact === null) {
             DisplayObjectService::displayError("Aucun contact trouvé avec l'ID $id.");
             exit;
@@ -41,7 +41,7 @@ class ContactManager
      * @return Contact Le contact avec les informations complètes
      */
     public function getLastInformationContact(int $id, string $name, string $email, string $phone_number): Contact {
-        $contact = $this->contactRepository->getContactById((int)$id);
+        $contact = $this->contactManager->getContactById((int)$id);
         if (is_array($contact)) {
             $contact = $contact[0] ?? null;
         }

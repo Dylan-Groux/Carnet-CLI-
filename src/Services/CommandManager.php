@@ -3,20 +3,20 @@
 namespace App\Services;
 
 use App\Entity\Contact;
-use App\Repository\ContactRepository;
-use App\Services\ContactManager;
+use App\Repository\ContactManager;
+use App\Services\ContactHelper;
 use App\Services\ContactSorter;
 
 class CommandManager
 {
-    private ContactRepository $contactRepository;
     private ContactManager $contactManager;
+    private ContactHelper $contactHelper;
     private ContactSorter $contactSorter;
     private Database $database;
 
     public function __construct() {
-        $this->contactRepository = new ContactRepository();
         $this->contactManager = new ContactManager();
+        $this->contactHelper = new ContactHelper();
         $this->contactSorter = new ContactSorter();
         $this->database = Database::getInstance();
     }
@@ -26,7 +26,7 @@ class CommandManager
      * @return Contact[] La liste des contacts triés
      */
     public function listContacts(): array {
-        $contacts = $this->contactRepository->findAll();
+        $contacts = $this->contactManager->findAll();
         DisplayObjectService::displayObjects($contacts);
         // Appel de la demande du tri
         $contacts = $this->contactSorter->interactiveSort($contacts);
@@ -40,7 +40,7 @@ class CommandManager
      */
     public function detailContact(int $id): ?Contact {
         try {
-            $contacts = $this->contactManager->showContact((int)$id);
+            $contacts = $this->contactHelper->showContact((int)$id);
             DisplayObjectService::displaySuccess("Contact trouvé avec succès.");
             DisplayObjectService::displayObject($contacts);
             return $contacts;
@@ -59,7 +59,7 @@ class CommandManager
         $email = readline("Entrez l'email du contact : ");
         $phone_number = readline("Entrez le numéro de téléphone du contact : ");
         $sanitized = DisplayObjectService::sanitizeContactObjectInput($name, $email, $phone_number);
-        $this->contactRepository->createContact($sanitized['name'], $sanitized['email'], $sanitized['phone_number']);
+        $this->contactManager->createContact($sanitized['name'], $sanitized['email'], $sanitized['phone_number']);
         $id = $this->database->getPDO()->lastInsertId();
         $contact = new Contact($id, $sanitized['name'], $sanitized['email'], $sanitized['phone_number']);
         DisplayObjectService::displaySuccess("Contact créé avec succès.");
@@ -77,7 +77,7 @@ class CommandManager
             return null;
         }
         try {
-            $contact = $this->contactRepository->deleteContact($id);
+            $contact = $this->contactManager->deleteContact($id);
             if ($contact !== null) {
                 DisplayObjectService::displaySuccess("Contact supprimé avec succès.");
                 DisplayObjectService::displayObject($contact);
@@ -96,15 +96,15 @@ class CommandManager
     public function modifyContact() : ?Contact {
         $id = readline("Entrez l'ID du contact à modifier : ");
 
-        $this->contactManager->showContact((int)$id);
+        $this->contactHelper->showContact((int)$id);
 
         $name = readline("Entrez le nouveau nom du contact (laisser vide pour ne pas changer) : ");
         $email = readline("Entrez le nouvel email du contact (laisser vide pour ne pas changer) : ");
         $phone_number = readline("Entrez le nouveau numéro de téléphone du contact (laisser vide pour ne pas changer) : ");
 
-        $lastInfo = $this->contactManager->getLastInformationContact((int)$id, $name, $email, $phone_number);
+        $lastInfo = $this->contactHelper->getLastInformationContact((int)$id, $name, $email, $phone_number);
 
-        $this->contactRepository->updateContact((int)$lastInfo->getId(), $lastInfo->getName(), $lastInfo->getEmail(), $lastInfo->getPhoneNumber());
+        $this->contactManager->updateContact((int)$lastInfo->getId(), $lastInfo->getName(), $lastInfo->getEmail(), $lastInfo->getPhoneNumber());
 
         DisplayObjectService::displaySuccess("Contact modifié avec succès.");
         DisplayObjectService::displayObject($lastInfo);
@@ -116,7 +116,7 @@ class CommandManager
      * @return Contact[]|null Les contacts trouvés ou null s'il n'existe pas
      */
     public function findContacts() : array {
-        $contacts = $this->contactRepository->findAll();
+        $contacts = $this->contactManager->findAll();
         $field = readline("Par quel champ voulez-vous rechercher ? (name, email, phone_number) : ");
         if (!in_array($field, ['name', 'email', 'phone_number'])) {
             DisplayObjectService::displayError("Champ de recherche invalide. Choisissez 'name', 'email' ou 'phone_number'.");

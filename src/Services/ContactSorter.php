@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
-use App\Services\ContactManager;
+use App\Services\ContactHelper;
 
 class ContactSorter
 {
-    private ContactManager $contactManager;
+    private ContactHelper $contactHelper;
     
     public function __construct() {
-        $this->contactManager = new ContactManager();
+        $this->contactHelper = new ContactHelper();
     }
     
     public function interactiveSort(array $contacts): array {
